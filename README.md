@@ -75,10 +75,32 @@ make docker-run  # Containerized verification (CI/isolated)
 
 ## Compatibility
 
-- **OS**: macOS (full UI) or Linux (headless verification)
+- **OS**: macOS (full UI) or Linux (headless verification, Docker)
 - **Python**: 3.11+
 - **OpenClaw**: CLI must be installed and in PATH (`brew install openclaw` on macOS)
 - **UI dependencies**: `rumps`, `pync` (macOS only)
+
+## Docker Deployment (Recommended for Linux/CI)
+
+The project includes full Docker support for portable, multi-architecture deployment:
+
+```bash
+# Quick verification in container
+make docker-run
+
+# Persistent service with docker-compose
+make docker-up    # Start in background
+make docker-logs  # View logs
+make docker-stop  # Stop service
+```
+
+**Docker features:**
+- Multi-arch builds (amd64, arm64)
+- Persistent volumes for `data/` (memory.json) and `config/`
+- Health checks and restart policies
+- Ideal for CI/CD and headless Linux servers
+
+See `docker-compose.yml` for configuration options (environment variables, networks, etc.)
 
 ## Verification Status
 
