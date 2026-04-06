@@ -86,7 +86,11 @@ class MemoryManager:
         if not recent:
             return "No recent appreciation"
         latest = recent[-1]
-        return f"{latest['text']} ({latest['sentiment']})"
+        # Use title if available, fallback to description or truncate title
+        display_text = latest.get('title') or latest.get('description', 'Appreciation')
+        if len(display_text) > 60:
+            display_text = display_text[:57] + '...'
+        return f"{display_text} ({latest['sentiment']})"
     
     def get_stats(self):
         from datetime import datetime, timezone, timedelta
@@ -328,7 +332,9 @@ class DashboardWindow(rumps.Window):
         dashboard.append("\n=== Latest Appreciation ===")
         for entry in reversed(recent):
             time_str = datetime.fromisoformat(entry["timestamp"]).strftime("%H:%M")
-            dashboard.append(f"  [{time_str}] {entry['text']}")
+            # Use title if available, fallback to description
+            display_text = entry.get('title') or entry.get('description', 'Appreciation')
+            dashboard.append(f"  [{time_str}] {display_text}")
         
         # OpenClaw status
         sessions = app.openclaw.get_sessions()
