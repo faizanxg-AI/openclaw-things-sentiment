@@ -7,9 +7,8 @@ Menu bar app with sentiment visualization, appreciation display, and dashboard.
 import os
 import json
 import time
-import threading
 import subprocess
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 import rumps
@@ -49,7 +48,7 @@ class MemoryManager:
     
     def add_sentiment(self, text, sentiment, intensity, source="openclaw"):
         entry = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "text": text,
             "sentiment": sentiment,
             "intensity": intensity,
@@ -62,7 +61,7 @@ class MemoryManager:
     
     def add_task_event(self, task_id, status, source="things"):
         entry = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "task_id": task_id,
             "status": status,
             "source": source
@@ -80,7 +79,6 @@ class MemoryManager:
     def get_latest_appreciation(self):
         entries = self.data.get("sentiment_entries", [])
         # Filter to last 14 days only
-        from datetime import datetime, timezone, timedelta
         cutoff = datetime.now(timezone.utc) - timedelta(days=14)
         recent = [e for e in entries if datetime.fromisoformat(e["timestamp"].replace("Z", "+00:00")) >= cutoff]
         if not recent:
@@ -93,7 +91,6 @@ class MemoryManager:
         return f"{display_text} ({latest['sentiment']})"
     
     def get_stats(self):
-        from datetime import datetime, timezone, timedelta
         cutoff = datetime.now(timezone.utc) - timedelta(days=14)
         entries = self.data.get("sentiment_entries", [])
         recent = [e for e in entries if datetime.fromisoformat(e["timestamp"].replace("Z", "+00:00")) >= cutoff]
@@ -119,38 +116,30 @@ class OpenClawBridge:
                 timeout=5
             )
             if result.returncode == 0:
-                return json.loads(result.stdout)
+                data = json.loads(result.stdout)
+                return data.get("sessions", [])
         except Exception as e:
             print(f"OpenClaw error: {e}")
         return []
     
     @staticmethod
     def send_message(session_key, text):
+        """Send a message to an OpenClaw session using the agent command."""
         try:
-            subprocess.run(
-                ["openclaw", "message", "send", session_key, text],
+            result = subprocess.run(
+                ["openclaw", "agent", "--session-id", session_key, "--message", text, "--json"],
                 capture_output=True,
-                timeout=5
+                text=True,
+                timeout=10
             )
-            return True
+            if result.returncode == 0:
+                return True
+            else:
+                print(f"OpenClaw send error: {result.stderr}")
+                return False
         except Exception as e:
             print(f"Send error: {e}")
             return False
-    
-    @staticmethod
-    def poll_messages(session_key, limit=10):
-        try:
-            result = subprocess.run(
-                ["openclaw", "messages", "read", session_key, "--limit", str(limit), "--json"],
-                capture_output=True,
-                text=True,
-                timeout=5
-            )
-            if result.returncode == 0:
-                return json.loads(result.stdout)
-        except Exception as e:
-            print(f"Poll error: {e}")
-        return []
 
 class HermesMenuBarApp(rumps.App):
     """Main menu bar application."""
@@ -160,8 +149,14 @@ class HermesMenuBarApp(rumps.App):
         self.memory = MemoryManager(MEMORY_FILE)
         self.openclaw = OpenClawBridge()
         self.current_session = None
-        self.polling = True
-        self.poll_thread = None
+        self._last_sessions = []
+        
+        # Refresh sessions immediately
+        self.refresh_sessions()
+        
+        # Start periodic session refresh (every 60s)
+        self.refresh_timer = rumps.Timer(self.refresh_sessions, 60.0)
+        self.refresh_timer.start()
         
         # Icon state
         self.current_color = SENTIMENT_COLORS["neutral"]
@@ -184,12 +179,21 @@ class HermesMenuBarApp(rumps.App):
             "Quit"
         ]
         
-        # Start polling thread
-        self.poll_thread = threading.Thread(target=self._poll_loop, daemon=True)
-        self.poll_thread.start()
-        
         # Start icon animation
         rumps.Timer(self._update_icon, 1.0).start()
+    
+    def refresh_sessions(self, _=None):
+        """Fetch latest sessions and select the most recent active one."""
+        sessions = self.openclaw.get_sessions()
+        self._last_sessions = sessions
+        if sessions:
+            # Pick the most recently updated session (updatedAt is in ms since epoch)
+            sessions_sorted = sorted(sessions, key=lambda s: s.get("updatedAt", 0), reverse=True)
+            self.current_session = sessions_sorted[0]["key"]
+        else:
+            self.current_session = None
+        # Update menu items that show sessions count
+        self._update_sessions_item()
     
     def _make_appreciation_item(self):
         return rumps.MenuItem(self.memory.get_latest_appreciation())
@@ -201,11 +205,19 @@ class HermesMenuBarApp(rumps.App):
         return rumps.MenuItem("\n".join(lines))
     
     def _make_sessions_item(self):
-        sessions = self.openclaw.get_sessions()
-        if not sessions:
+        count = len(self._last_sessions)
+        if count == 0:
             return rumps.MenuItem("No sessions")
-        # Just show count for now
-        return rumps.MenuItem(f"{len(sessions)} active")
+        return rumps.MenuItem(f"{count} active")
+    
+    def _update_sessions_item(self):
+        # Find and update the sessions menu item
+        for idx, item in enumerate(self.menu):
+            if isinstance(item, rumps.MenuItem) and "OpenClaw Sessions:" in (item.title or ""):
+                if idx + 1 < len(self.menu):
+                    sessions_item = self.menu[idx + 1]
+                    sessions_item.title = self._make_sessions_item().title
+                break
     
     @rumps.clicked("Show Dashboard")
     def show_dashboard(self, _):
@@ -215,13 +227,24 @@ class HermesMenuBarApp(rumps.App):
     @rumps.clicked("Test Notification")
     def test_notification(self, _):
         """Test notification."""
-        pync.notify("Test appreciation message!", title="Hermes")
-        self.memory.add_sentiment("Test notification", "positive", "medium")
+        # Create a local sentiment entry
+        self.memory.add_sentiment("Test notification from Hermes UI", "positive", "medium")
         self._refresh_menu()
+        # Also send to OpenClaw if we have a session
+        if self.current_session:
+            success = self.openclaw.send_message(self.current_session, "Test notification from Hermes UI")
+            if success:
+                print("Sent test notification to OpenClaw session:", self.current_session)
+            else:
+                print("Failed to send test notification to OpenClaw")
+        else:
+            print("No OpenClaw session selected; not sending")
+        # Show a notification
+        rumps.notification("Hermes", None, "Test notification sent")
     
     @rumps.clicked("Quit")
     def quit(self, _):
-        self.polling = False
+        self.refresh_timer.stop()
         rumps.quit_application()
     
     def _update_icon(self, _):
@@ -231,7 +254,7 @@ class HermesMenuBarApp(rumps.App):
         
         # Determine current color from latest sentiment
         latest = self.memory.get_latest_appreciation()
-        # For now use neutral pulse; Clawdiya will wire real sentiment
+        # For now use neutral pulse; wire to real sentiment later
         color = SENTIMENT_COLORS["neutral"]
         
         self.icon = self._create_colored_icon(color)
@@ -241,43 +264,6 @@ class HermesMenuBarApp(rumps.App):
         # In a real implementation, we'd generate a proper icon
         # For now return None (use system default)
         return None
-    
-    def _poll_loop(self):
-        """Background polling for OpenClaw messages and sentiment."""
-        while self.polling:
-            try:
-                if self.current_session:
-                    messages = self.openclaw.poll_messages(self.current_session)
-                    for msg in messages:
-                        # Parse sentiment (simplified)
-                        sentiment = self._analyze_sentiment(msg.get("text", ""))
-                        self.memory.add_sentiment(
-                            msg.get("text", ""),
-                            sentiment,
-                            "medium",
-                            "openclaw"
-                        )
-                        # Trigger notification
-                        pync.notify(msg.get("text", ""), title="Hermes")
-                time.sleep(2)
-            except Exception as e:
-                print(f"Poll error: {e}")
-                time.sleep(5)
-    
-    def _analyze_sentiment(self, text):
-        """Simple sentiment analysis - Clawdiya will provide real integration."""
-        text_lower = text.lower()
-        positive_words = ["appreciate", "great", "love", "awesome", "thank", "good"]
-        negative_words = ["bad", "hate", "terrible", "worst", "angry"]
-        
-        pos_count = sum(1 for w in positive_words if w in text_lower)
-        neg_count = sum(1 for w in negative_words if w in text_lower)
-        
-        if pos_count > neg_count:
-            return "positive"
-        elif neg_count > pos_count:
-            return "negative"
-        return "neutral"
     
     def _refresh_menu(self):
         """Update menu items with latest data."""
@@ -292,10 +278,8 @@ class HermesMenuBarApp(rumps.App):
         lines.append(f"Total: {total}")
         stats_item.title = "\n".join(lines)
         
-        # Update sessions
-        sessions_item = self.menu["OpenClaw Sessions:"].submenu[1]
-        sessions = self.openclaw.get_sessions()
-        sessions_item.title = f"{len(sessions)} active" if sessions else "No sessions"
+        # Update sessions count
+        self._update_sessions_item()
 
 class DashboardWindow(rumps.Window):
     """Dashboard window showing aggregated stats."""
@@ -311,7 +295,6 @@ class DashboardWindow(rumps.Window):
         self.app = app
     
     def _generate_dashboard(self, app):
-        from datetime import datetime, timezone, timedelta
         stats, total = app.memory.get_stats()
         
         dashboard = [
@@ -337,7 +320,7 @@ class DashboardWindow(rumps.Window):
             dashboard.append(f"  [{time_str}] {display_text}")
         
         # OpenClaw status
-        sessions = app.openclaw.get_sessions()
+        sessions = app._last_sessions
         dashboard.append(f"\nOpenClaw Sessions: {len(sessions)}")
         
         return "\n".join(dashboard)

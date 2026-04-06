@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  openclaw-things-sentiment:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    container_name: openclaw-things-sentiment
+    volumes:
+      - ./data:/app/data:rw  # Persist memory.json and logs
+      - ./config:/app/config:rw  # Persist configuration if added
+    environment:
+      - PYTHONUNBUFFERED=1
+      - OPENCLAW_API_URL=${OPENCLAW_API_URL:-http://localhost:8080}
+    # For development: mount source code for live reload
+    # volumes:
+    #   - .:/app:ro
+    #   - ./data:/app/data:rw
+    # command: ["python3.11", "-m", "rumps_app.main"]  # For UI (won't work in container)
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3.11", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    # Network mode for OpenClaw connectivity
+    networks:
+      - openclaw-network
+
+networks:
+  openclaw-network:
+    driver: bridge

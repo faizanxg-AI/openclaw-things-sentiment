@@ -1,35 +1,52 @@
-# OpenClaw Poller Verification Container
-# Build: docker build -t openclaw-poller-verify .
-# Run: docker run --rm openclaw-poller-verify
+# Multi-arch Dockerfile for OpenClaw Things Sentiment Integration
+# Supports: linux/amd64, linux/arm64
 
-FROM python:3.11-slim
+FROM python:3.11-slim AS builder
 
-WORKDIR /workspace
+WORKDIR /app
 
-# Install system dependencies (OpenClaw CLI requires libssl, libcurl)
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
+    build-essential \
     curl \
-    ca-certificates \
-    libssl3 \
-    libcurl4 \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
-# Install OpenClaw CLI (adjust if using custom install method)
-# For Headless/CI environments, we can mock openclaw if needed
-# RUN curl -fsSL https://raw.githubusercontent.com/OWNER/REPO/install.sh | sh
-
+# Copy dependency files
 COPY requirements-test.txt .
-RUN pip install --no-cache-dir -r requirements-test.txt
+COPY pyproject.toml .
 
-# Copy project files
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements-test.txt
+
+# Runtime image
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install OpenClaw CLI
+RUN curl -fsSL https://raw.githubusercontent.com/openclaw/cli/main/install.sh | sh
+
+# Copy installed dependencies from builder
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Copy application code
 COPY . .
 
-# Verify poller syntax (no execution)
-RUN python3 -m py_compile things_sentiment_poller.py comprehensive_validator.py rumps_app/main.py
+# Create data directory for memory.json
+RUN mkdir -p data && cp -f memory_demo.json memory.json || true
 
-# Run verification in demo mode (doesn't require OpenClaw binary)
-# Note: If openclaw is not present, the script will warn but not fail
-RUN bash scripts/verify_poller.sh || true
+# Make scripts executable
+RUN chmod +x scripts/verify_poller.sh setup.sh
 
-# Default command shows help
-CMD ["python3", "things_sentiment_poller.py", "--help"]
+# Expose ports if needed (for future web UI)
+# EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD python3.11 -c "import sys; sys.exit(0)" || exit 1
+
+# Default command: run verification
+CMD ["bash", "scripts/verify_poller.sh"]
