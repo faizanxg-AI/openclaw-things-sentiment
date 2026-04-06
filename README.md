@@ -114,7 +114,32 @@ make docker-stop  # Stop service
 - Health checks and restart policies
 - Ideal for CI/CD and headless Linux servers
 
-See `docker-compose.yml` for configuration options (environment variables, networks, etc.)
+See `docker-compose.yml` for configuration options
+
+## Pre-built Docker Images
+
+Docker images are automatically built and published to GitHub Container Registry (GHCR) on every push to `main`:
+
+```bash
+# Pull the latest multi-architecture image
+docker pull ghcr.io/faizanxg-ai/openclaw-things-sentiment:latest
+
+# Run directly without building
+docker run --rm ghcr.io/faizanxg-ai/openclaw-things-sentiment:latest
+
+# Or with docker-compose using the pre-built image
+# In docker-compose.yml, replace `build:` with `image: ghcr.io/faizanxg-ai/openclaw-things-sentiment:latest`
+```
+
+**Available tags:**
+- `latest` - Most recent build from main branch
+- `main-<sha>` - Specific commit (e.g., `main-a3159ea`)
+- `v*` - Semantic version tags (when you create releases)
+- `amd64`, `arm64` - Multi-architecture support built-in
+
+Images are built for both `linux/amd64` and `linux/arm64` (Raspberry Pi, Apple Silicon) and include a Software Bill of Materials (SBOM) for security auditing.
+
+ (environment variables, networks, etc.)
 
 ## Verification Status
 
