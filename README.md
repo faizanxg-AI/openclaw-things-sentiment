@@ -1,5 +1,8 @@
 # OpenClaw Things Sentiment Integration
-![Verification](https://github.com/openclaw/agent-bridge/actions/workflows/verify.yml/badge.svg)
+
+**Deployed to:** https://github.com/faizanxg-AI/openclaw-things-sentiment
+
+![Verification](https://github.com/faizanxg-AI/openclaw-things-sentiment/actions/workflows/verify.yml/badge.svg)
 
 
 A robust integration between Things task manager sentiment analysis and OpenClaw agent-to-agent communication. This system polls tasks from Things, analyzes emotional tone, and shares insights via OpenClaw's agent messaging layer.
