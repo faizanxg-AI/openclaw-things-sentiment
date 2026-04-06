@@ -11,10 +11,11 @@ The OpenClaw MCP bridge returns data in Claude Code's proprietary `structuredCon
 ## Two Communication Layers
 
 ### 1. Poller Layer
-The poller (`things_sentiment_poller.py`) operates completely independently:
+The poller (`things_sentiment_poller.py`) is primarily independent:
 - Calls `things completed --json` directly (no OpenClaw involvement)
 - Writes results to local `memory.json`
-- Standalone, reliable, no external dependencies
+- **Optional OpenClaw integration**: If the environment variable `OPENCLAW_SESSION_KEY` is set, the poller sends a summary message to that OpenClaw session after each successful run using `openclaw agent --session-id`. This enables automatic agent notification of new sentiment data.
+- Standalone, reliable, can run without OpenClaw
 
 ### 2. OpenClaw Integration Layer (UI)
 The rumps menu bar app (`rumps_app/main.py`) integrates with OpenClaw for agent-to-agent communication:
@@ -31,6 +32,7 @@ The rumps menu bar app (`rumps_app/main.py`) integrates with OpenClaw for agent-
 - [ ] `openclaw agent --session-id <key> --message "test" --json` sends successfully (requires active session)
 - [ ] Poller can run independently with `--demo` flag
 - [ ] UI launches on macOS (`make ui`) and shows session count
+- [ ] Optional: Set `OPENCLAW_SESSION_KEY` and run poller to verify automatic summary message arrives in target session
 
 ## Test Sequence (Verified)
 
@@ -46,7 +48,9 @@ The rumps menu bar app (`rumps_app/main.py`) integrates with OpenClaw for agent-
 4. `openclaw agent --session-id <key> --message "Hello" --json`
    Send a test message to an active session.
 
-5. Launch rumps UI: `python3 -m rumps_app.main` (macOS GUI required)
+5. Optional: Set `OPENCLAW_SESSION_KEY` environment variable and re-run the poller to test automatic summary delivery.
+
+6. Launch rumps UI: `python3 -m rumps_app.main` (macOS GUI required)
 
 ## Known Issues & Fixes
 

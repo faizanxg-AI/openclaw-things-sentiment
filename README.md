@@ -80,6 +80,20 @@ make docker-run  # Containerized verification (CI/isolated)
 - **OpenClaw**: CLI must be installed and in PATH (`brew install openclaw` on macOS)
 - **UI dependencies**: `rumps`, `pync` (macOS only)
 
+## OpenClaw Auto-Forwarding (Optional)
+
+Set the environment variable `OPENCLAW_SESSION_KEY` to automatically send a summary message to an OpenClaw session after each poller run:
+
+```bash
+# Get your active session key (first one)
+export OPENCLAW_SESSION_KEY=$(openclaw sessions --json | python3 -c "import sys, json; print(json.load(sys.stdin)['sessions'][0]['key'])")
+
+# Run poller (demo or live)
+make demo  # Summary will be sent to the configured session
+```
+
+This enables the poller to notify an agent (e.g., Clawdiya) whenever new sentiment data is available without manual intervention.
+
 ## Docker Deployment (Recommended for Linux/CI)
 
 The project includes full Docker support for portable, multi-architecture deployment:

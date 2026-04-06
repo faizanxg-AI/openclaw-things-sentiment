@@ -15,6 +15,7 @@ Features:
 
 import argparse
 import json
+import os
 import random
 import string
 import subprocess
@@ -476,6 +477,27 @@ def run_poller(args):
         import shutil
         shutil.copyfile(demo_path, MEMORY_FILE)
         print(f"Copied {demo_path} → {MEMORY_FILE}")
+
+    # Optional: send summary to OpenClaw agent if SESSION_KEY is configured
+    session_key = os.getenv("OPENCLAW_SESSION_KEY")
+    if session_key:
+        try:
+            total = memory['stats']['total']
+            latest_entry = memory['sentiment_entries'][-1] if memory['sentiment_entries'] else None
+            if latest_entry:
+                title = latest_entry.get('title', 'Untitled')
+                sentiment = latest_entry.get('sentiment', 'neutral')
+                summary = f"Things sentiment update: {total} total entries. Latest: {title} ({sentiment})"
+            else:
+                summary = f"Things sentiment update: {total} total entries. No entries yet."
+            result = subprocess.run(
+                ["openclaw", "agent", "--session-id", session_key, "--message", summary, "--json"],
+                capture_output=True, text=True, timeout=10
+            )
+            if result.returncode != 0:
+                print(f"OpenClaw send failed: {result.stderr}")
+        except Exception as e:
+            print(f"OpenClaw send error: {e}")
 
 def validate_memory_schema(memory):
     """Basic schema validation for memory structure."""
