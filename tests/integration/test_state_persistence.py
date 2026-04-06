@@ -12,7 +12,7 @@ def test_state_persistence_prevents_duplicate_processing(tmp_path):
         "last_poll": "2025-01-01T00:00:00",
         "last_task_id": "task_123"
     }
-    save_state(initial_state, path=state_file)
+    save_state(last_poll=initial_state["last_poll"], last_task_id=initial_state["last_task_id"], path=state_file)
 
     # Act: load the state
     loaded_state = load_state(path=state_file)
