@@ -7,11 +7,18 @@ set -euo pipefail
 WORKSPACE="/Users/faizan/agent-bridge/workspace"
 cd "$WORKSPACE"
 
+# Auto-detect virtual environment
+if [ -x ".venv/bin/python" ]; then
+    PYTHON=".venv/bin/python"
+else
+    PYTHON="python3.11"
+fi
+
 echo "=== Step 1: Generate demo memory ==="
-python3 things_sentiment_poller.py --demo --demo-count 15 --use-demo
+$PYTHON things_sentiment_poller.py --demo --demo-count 15 --use-demo
 
 echo "=== Step 2: Validate memory schema ==="
-python3 comprehensive_validator.py
+$PYTHON comprehensive_validator.py
 
 echo "=== Step 3: Check OpenClaw CLI availability ==="
 if ! command -v openclaw &>/dev/null; then
@@ -29,7 +36,7 @@ fi
 
 echo "=== Step 5: Verify rumps dependencies (macOS only) ==="
 if [[ "$(uname)" == "Darwin" ]]; then
-    python3 -c "import rumps" 2>/dev/null && echo "rumps available" || echo "WARNING: rumps not installed (run: pip install rumps pync)"
+    $PYTHON -c "import rumps" 2>/dev/null && echo "rumps available" || echo "WARNING: rumps not installed (run: pip install rumps pync)"
 else
     echo "Non-macOS system: skipping rumps check"
 fi

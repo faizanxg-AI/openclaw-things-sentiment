@@ -1,24 +1,31 @@
 #!/bin/bash
 set -e
 
-echo "================================================"
+echo "=================================================="
 echo "OpenClaw Things Sentiment Integration - Setup"
-echo "================================================"
+echo "=================================================="
 
 # Check Python version
 echo "Checking Python..."
-python3 --version || { echo "Python 3.11+ required"; exit 1; }
+python3.11 --version || { echo "Python 3.11+ required"; exit 1; }
 
-# Install dependencies
+# Create virtual environment if it doesn't exist
+if [ ! -d ".venv" ]; then
+    echo "Creating virtual environment..."
+    python3.11 -m venv .venv
+fi
+
+# Install dependencies into venv
 echo "Installing dependencies..."
-pip3 install --upgrade pip
-pip3 install -r requirements-test.txt
+. .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements-test.txt
 
 # Try to install UI dependencies (may fail on Linux)
 echo "Installing UI dependencies (macOS only)..."
-pip3 install rumps pync 2>/dev/null || echo "Note: rumps/pync require macOS"
+pip install rumps pync 2>/dev/null || echo "Note: rumps/pync require macOS"
 
-# Run full verification
+# Run full verification using venv python
 echo "Running verification pipeline..."
 chmod +x scripts/verify_poller.sh
 bash scripts/verify_poller.sh
@@ -27,7 +34,7 @@ bash scripts/verify_poller.sh
 echo "Setting up production memory..."
 cp -f memory_demo.json memory.json
 
-echo "================================================"
+echo "=================================================="
 echo "Setup complete!"
 echo ""
 echo "Next steps:"
