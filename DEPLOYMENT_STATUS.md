@@ -3,7 +3,9 @@
 **Date:** 2026-04-06  
 **Status:** ✅ DEPLOYED TO PRODUCTION  
 **Repository:** https://github.com/faizanxg-AI/openclaw-things-sentiment  
-**Latest Commit:** (see git log)  
+**Commits:** 9 (main branch)  
+**Latest Commit:** a3159ea (docs: add Docker deployment section)  
+**Docker:** Multi-arch builds (amd64/arm64) available  
 
 ## Verification Summary
 
@@ -92,12 +94,33 @@ make send-test SESSION_ID=<your-openclaw-session>
 ```
 
 ### Option 3: Run in Container (CI/CD)
+
+Multi-architecture Docker support for any Linux system (amd64/arm64):
+
 ```bash
+# Quick verification in container (builds & runs)
 make docker-run
-# or
-docker build -t openclaw-poller-verify .
-docker run --rm openclaw-poller-verify
+
+# Persistent service (background)
+make docker-up
+
+# View logs
+make docker-logs
+
+# Stop service
+make docker-stop
+
+# Build multi-arch image manually
+docker buildx build --platform linux/amd64,linux/arm64 -t openclaw-things-sentiment:latest --load .
+docker-compose run --rm openclaw-things-sentiment
 ```
+
+**Docker features:**
+- Persistent volumes: `data/` (memory.json) and `config/`
+- Health checks and restart policies
+- Environment variable: `OPENCLAW_API_URL` for custom OpenClaw endpoints
+- Network: `openclaw-network` for service communication
+- Ideal for CI/CD, Raspberry Pi, or headless servers
 
 ## Critical Success Factors
 
