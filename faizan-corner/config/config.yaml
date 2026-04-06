@@ -1,0 +1,20 @@
+# Faizan's Corner configuration
+
+# Message generation
+message_frequency: "hourly"  # "hourly", "random", "on_event"
+quiet_hours: ["23:00", "07:00"]
+max_messages_per_day: 5
+
+# Things 3 integration
+things_enabled: true
+things_categories:
+  - "Inbox"
+  - "Today"
+  - "Upcoming"
+celebrate_on_complete: true
+
+# Visuals
+palette: "auto"  # "auto" shifts by time of day, or "warm", "cool", "neutral"
+
+# Memory
+memory_path: "../memory.json"

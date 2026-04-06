@@ -1,0 +1,4 @@
+{"timestamp": "2026-04-06T20:54:11.346125Z", "source": "things_completion", "polarity": 0.8, "emotion": "motivation", "context": "Completed 3 tasks in 'Project Alpha'"}
+{"timestamp": "2026-04-06T20:54:11.967286Z", "source": "direct_message", "polarity": 0.8, "emotion": "joy", "context": "User said: This is amazing!"}
+{"timestamp": "2026-04-06T20:54:12.590493Z", "source": "direct_message", "polarity": -0.6, "emotion": "fatigue", "context": "User said: Why is this not working?!"}
+{"timestamp": "2026-04-06T20:54:13.209244Z", "source": "direct_message", "polarity": 0.3, "emotion": "calm", "context": "User said: Just breathing and focusing."}

@@ -1,0 +1,1 @@
+"""Tests package for things_sentiment_poller."""

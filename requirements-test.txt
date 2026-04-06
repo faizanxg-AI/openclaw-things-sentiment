@@ -1,0 +1,4 @@
+# Test dependencies for things_sentiment_poller
+pytest>=7.0.0
+pytest-cov>=4.0.0  # Optional: coverage reporting
+freezegun>=1.2.0  # Optional: time mocking (alternative to custom fixtures)
