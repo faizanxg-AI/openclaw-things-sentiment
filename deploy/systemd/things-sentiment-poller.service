@@ -1,0 +1,30 @@
+# Systemd service for OpenClaw Things Sentiment Polling Daemon
+# Place this file at: ~/.config/systemd/user/things-sentiment-poller.service
+# Then run: systemctl --user daemon-reload && systemctl --user enable --now things-sentiment-poller
+
+[Unit]
+Description=OpenClaw Things Sentiment Polling Service
+Documentation=https://github.com/faizanxg-AI/openclaw-things-sentiment
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/path/to/agent-bridge/workspace
+ExecStart=/path/to/agent-bridge/workspace/scripts/start_polling.sh
+Environment="OPENCLAW_SESSION_KEY=${OPENCLAW_SESSION_KEY}"
+Environment="PYTHONUNBUFFERED=1"
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=things-sentiment-poller
+
+# Security hardening (uncomment if needed)
+# PrivateTmp=true
+# ProtectSystem=strict
+# ProtectHome=read-only
+# NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

@@ -138,6 +138,9 @@ class PollingService:
             if self.config['automation']['enabled']:
                 self.process_automation(memory)
 
+            # Write health status
+            self.write_status(memory)
+
             logger.info("Polling cycle completed successfully")
             return True
 
@@ -202,6 +205,31 @@ class PollingService:
 
         except Exception as e:
             logger.error(f"Automation processing failed: {e}")
+
+    def write_status(self, memory):
+        """Write health status file for monitoring.
+        Status file will be read by healthcheck.py script and external monitoring systems.
+        """
+        try:
+            status_file = Path(self.config.get('health', {}).get('status_file', 'polling_status.json'))
+            latest_entry = memory['sentiment_entries'][-1] if memory['sentiment_entries'] else None
+
+            status = {
+                'timestamp': datetime.now(timezone.utc).isoformat(timespec='seconds'),
+                'total_tasks': memory['stats'].get('total', 0),
+                'latest_sentiment': latest_entry.get('sentiment') if latest_entry else None,
+                'latest_title': latest_entry.get('title') if latest_entry else None,
+                'last_poll': memory.get('last_updated', ''),
+                'service': 'things-sentiment-poller',
+                'version': '1.0.0'
+            }
+
+            with open(status_file, 'w') as f:
+                json.dump(status, f, indent=2)
+
+            logger.debug(f"Wrote health status to {status_file}")
+        except Exception as e:
+            logger.warning(f"Failed to write health status: {e}")
 
     def run(self):
         """Main service loop."""

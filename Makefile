@@ -1,4 +1,4 @@
-.PHONY: help verify demo validate ui test clean docker-build docker-run docker-stop docker-logs poll-start poll-stop poll-status
+.PHONY: help verify demo validate ui test clean docker-build docker-run docker-stop docker-logs poll-start poll-stop poll-status healthcheck
 
 # Auto-detect virtual environment - use .venv if present, else system python3.11
 PYTHON := python3.11
@@ -64,3 +64,6 @@ poll-stop: ## Stop the polling service (sends SIGTERM)
 
 poll-status: ## Show polling service status
 	@if [ -f polling_status.json ]; then cat polling_status.json | python3 -m json.tool; else echo "No status file found"; fi
+
+healthcheck: ## Run health check (returns 0 if service is healthy)
+	@python3 scripts/healthcheck.py

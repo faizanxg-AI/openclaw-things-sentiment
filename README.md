@@ -72,31 +72,35 @@ make docker-run  # Containerized verification (CI/isolated)
 
 ```
 .
-├── things_sentiment_poller.py   # Main poller with demo mode
-├── comprehensive_validator.py   # Schema + emotion validator
-├── polling_service.py           # Live daemon with scheduling & automation
-├── rumps_app/                   # macOS UI
-│   └── main.py
+├── polling_service.py            # Production daemon with scheduling & health checks
 ├── automation/
-│   └── rule_engine.py           # Rule-based OpenClaw automation
+│   └── rule_engine.py           # YAML-based notification rule engine
+├── comprehensive_validator.py   # Schema + emotion validation
+├── rumps_app/                   # macOS menu bar UI
+├── tests/                       # Full test suite (62 tests)
 ├── config/
-│   ├── automation_rules.yaml    # Notification rules
-│   └── polling_service.yaml     # Poller daemon config
+│   ├── polling_service.yaml     # Polling interval, startup delay, task limits
+│   └── automation_rules.yaml    # Sentiment/category/intensity rules with cooldowns
 ├── scripts/
+│   ├── start_polling.sh         # Production launcher with venv detection
+│   ├── healthcheck.py           # Health check script (returns 0 if service healthy)
 │   ├── verify_poller.sh         # Automated verification pipeline
-│   ├── send_test_message.sh     # Test message sender
-│   └── start_polling.sh         # Polling service launcher
-├── .github/workflows/
-│   ├── verify.yml               # CI test pipeline
-│   └── docker-build.yml         # Docker multi-arch builds
-├── Makefile                     # Task automation
-├── Dockerfile                   # Container verification
-├── docker-compose.yml           # Container orchestration
-├── .dockerignore                # Docker build exclusions
-├── COMMUNICATION.md             # Architecture deep-dive
-├── QUICKSTART.md                # End-user guide
-├── DEPLOYMENT_STATUS.md         # Deployment checklist
-└── FINAL_SUMMARY.md             # Project recap
+│   └── send_test_message.sh     # Test messaging
+├── deploy/
+│   └── systemd/
+│       └── things-sentiment-poller.service  # Systemd unit file for Linux
+├── .github/
+│   └── workflows/
+│       ├── docker-build.yml     # Multi-arch Docker builds + SBOM
+│       └── verify.yml           # CI pipeline (tests)
+├── Makefile                     # Task automation (verify, demo, ui, poll-*, healthcheck, docker-*)
+├── Dockerfile                   # Container with health checks
+├── quickstart.sh                # ⭐ Smart environment detection & guided setup
+├── setup.sh                     # macOS UI setup
+├── README.md                    # Project overview + CI badge + deployment guide
+├── FINAL_SUMMARY.md            # Comprehensive production recap
+├── DEPLOYMENT_STATUS.md        # This file - current status
+└── requirements-test.txt        # Test dependencies
 ```
 
 ## Compatibility
@@ -165,6 +169,39 @@ rules:
 ```
 
 Rules trigger when sentiment entries match emotion, category, and intensity thresholds. Cooldowns prevent spam.
+
+### Health Checks & Monitoring
+
+Polling service writes its status to `polling_status.json` after each cycle. Check health with:
+
+```bash
+make healthcheck               # Run health check script (returns 0 if healthy)
+make poll-status               # View full status JSON
+```
+
+External monitoring (systemd, Monit, Nagios) can watch the status file for freshness and expected values.
+
+### Linux Systemd Deployment
+
+For production servers, use the provided systemd unit file:
+
+```bash
+# 1. Copy unit file to user systemd directory
+mkdir -p ~/.config/systemd/user
+cp deploy/systemd/things-sentiment-poller.service ~/.config/systemd/user/
+
+# 2. Edit the unit file to set correct WorkingDirectory path
+
+# 3. Reload systemd and enable/start the service
+systemctl --user daemon-reload
+systemctl --user enable --now things-sentiment-poller
+
+# 4. Check status
+systemctl --user status things-sentiment-poller
+journalctl --user -u things-sentiment-poller -f
+```
+
+The service will start automatically on login and restart on failures.
 
 ---
 
