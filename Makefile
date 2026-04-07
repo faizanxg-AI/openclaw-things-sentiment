@@ -71,10 +71,16 @@ poll-status: ## Show polling service status
 healthcheck: ## Run health check (returns 0 if service is healthy)
 	@python3 scripts/healthcheck.py
 
+preflight: ## Run pre-flight validation (dependencies, config, permissions)
+	@python3 scripts/preflight_check.py
+
 dashboard: ## Launch web dashboard (cross-platform UI on port 8000)
 	@echo "Starting dashboard on http://localhost:8000"
 	@python3 dashboard/app.py
 
+weekly-report: ## Generate weekly sentiment analytics report (saves to data/reports/)
+	@echo "Generating weekly analytics report..."
+	@python3 analytics/weekly_report.py
 install-systemd:
 	@echo "Installing systemd service with automatic path detection..."
 	@WORKDIR="$(CURDR)" ./deploy/systemd/install.sh
