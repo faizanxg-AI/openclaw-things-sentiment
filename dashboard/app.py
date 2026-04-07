@@ -10,15 +10,21 @@ from datetime import datetime
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
-MEMORY_FILE = os.path.join(DATA_DIR, 'memory.json')
+# Memory file is in workspace root (parent of dashboard directory)
+WORKSPACE_ROOT = os.path.dirname(os.path.dirname(__file__))
+MEMORY_FILE = os.path.join(WORKSPACE_ROOT, 'memory.json')
 
 
 def load_memory():
     """Load sentiment memory from JSON file."""
     try:
         with open(MEMORY_FILE, 'r') as f:
-            return json.load(f)
+            data = json.load(f)
+            # Normalize: poller uses 'sentiment_entries', dashboard expects 'entries'
+            return {
+                'entries': data.get('sentiment_entries', []),
+                'last_updated': data.get('last_updated')
+            }
     except (FileNotFoundError, json.JSONDecodeError):
         return {"entries": [], "last_updated": None}
 
@@ -98,5 +104,5 @@ def health():
 
 if __name__ == '__main__':
     # Ensure data directory exists
-    os.makedirs(DATA_DIR, exist_ok=True)
+    os.makedirs(os.path.dirname(MEMORY_FILE), exist_ok=True)
     app.run(host='0.0.0.0', port=8000, debug=True)
