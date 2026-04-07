@@ -70,3 +70,8 @@ poll-status: ## Show polling service status
 
 healthcheck: ## Run health check (returns 0 if service is healthy)
 	@python3 scripts/healthcheck.py
+
+install-systemd:
+	@echo "Installing systemd service with automatic path detection..."
+	@WORKDIR="$(CURDR)" ./deploy/systemd/install.sh
+	@echo "Service installed. Run: systemctl --user daemon-reload && systemctl --user enable --now things-sentiment-poller"

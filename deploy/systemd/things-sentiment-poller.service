@@ -1,6 +1,8 @@
 # Systemd service for OpenClaw Things Sentiment Polling Daemon
-# Place this file at: ~/.config/systemd/user/things-sentiment-poller.service
-# Then run: systemctl --user daemon-reload && systemctl --user enable --now things-sentiment-poller
+# Installation:
+#   1. Edit this file and set WORKDIR to your actual workspace path
+#   2. Or use: env WORKDIR=/your/path ./scripts/install_systemd.sh
+#   3. Then: systemctl --user daemon-reload && systemctl --user enable --now things-sentiment-poller
 
 [Unit]
 Description=OpenClaw Things Sentiment Polling Service
@@ -10,8 +12,9 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=/path/to/agent-bridge/workspace
-ExecStart=/path/to/agent-bridge/workspace/scripts/start_polling.sh
+# IMPORTANT: Set WorkingDirectory to your actual workspace path
+WorkingDirectory=${WORKDIR:-/path/to/agent-bridge/workspace}
+ExecStart=${WORKDIR:-/path/to/agent-bridge/workspace}/scripts/start_polling.sh
 Environment="OPENCLAW_SESSION_KEY=${OPENCLAW_SESSION_KEY}"
 Environment="PYTHONUNBUFFERED=1"
 Restart=on-failure
