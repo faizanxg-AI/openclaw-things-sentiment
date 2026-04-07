@@ -71,6 +71,10 @@ poll-status: ## Show polling service status
 healthcheck: ## Run health check (returns 0 if service is healthy)
 	@python3 scripts/healthcheck.py
 
+dashboard: ## Launch web dashboard (cross-platform UI on port 8000)
+	@echo "Starting dashboard on http://localhost:8000"
+	@python3 dashboard/app.py
+
 install-systemd:
 	@echo "Installing systemd service with automatic path detection..."
 	@WORKDIR="$(CURDR)" ./deploy/systemd/install.sh

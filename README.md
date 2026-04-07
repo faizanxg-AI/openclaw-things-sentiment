@@ -250,7 +250,24 @@ docker run --rm ghcr.io/faizanxg-ai/openclaw-things-sentiment:latest
 
 Images are built for both `linux/amd64` and `linux/arm64` (Raspberry Pi, Apple Silicon) and include a Software Bill of Materials (SBOM) for security auditing.
 
- (environment variables, networks, etc.)
+### Cross-Platform Web Dashboard
+
+For a browser-based UI available on any OS, use the Flask dashboard:
+
+```bash
+# Ensure data exists (run poller or generate demo)
+make demo
+# Launch dashboard
+make dashboard
+# Open http://localhost:8000 in your browser
+```
+
+The dashboard displays:
+- Total sentiment entries and dominant emotions/categories
+- Latest entry details with timestamp
+- Table of recent entries (auto-refresh every 30s)
+
+Dashboard app: `dashboard/app.py` (Flask, port 8000). Expose port 8000 in Docker if running containerized.
 
 ## Verification Status
 
@@ -258,7 +275,7 @@ Production deployment fully verified and ready:
 
 ✅ All 62 tests passing (4 skipped for future enhancements)  \
 ✅ Core production files: polling_service.py, rule_engine.py, configs  \
-✅ Make targets: verify, verify-production, poll-*, healthcheck, quickstart  \
+✅ Make targets: verify, verify-production, poll-*, healthcheck, quickstart, dashboard  \
 ✅ Health check script and status JSON tracking  \
 ✅ Systemd service file for Linux servers  \
 ✅ Docker multi-arch builds (amd64/arm64) with CI/CD  \
