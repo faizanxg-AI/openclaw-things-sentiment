@@ -73,6 +73,52 @@ make ui  # macOS only
 
 ---
 
+
+## 🔄 Live Polling & Automation
+
+The production-ready polling daemon provides continuous operation with intelligent sentiment-triggered automation:
+
+**Core Files:**
+- `polling_service.py` - Main daemon with scheduling, health checks, signal handling
+- `automation/rule_engine.py` - YAML-based rule engine for OpenClaw notifications
+- `config/polling_service.yaml` - Polling interval (30min), startup delay, task limits
+- `config/automation_rules.yaml` - Sentiment/category/intensity rules with cooldowns
+- `scripts/start_polling.sh` - Launcher with venv detection
+
+**Commands:**
+```bash
+export OPENCLAW_SESSION_KEY="your-key"
+make poll-start    # Start daemon (runs in foreground)
+make poll-status   # View health status
+make poll-stop     # Graceful shutdown
+```
+
+**Automation Rules Example:**
+```yaml
+rules:
+  - name: "Urgent Frustration Alert"
+    emotion: frustrated
+    min_intensity: 7
+    action: send_openclaw_summary
+    cooldown_minutes: 60
+    
+  - name: "Daily Positive Highlights"
+    emotion: joyful
+    category: Personal
+    action: send_openclaw_summary
+    schedule: "0 9 * * *"  # Daily at 9am
+```
+
+**Production Features:**
+- PID file management for process control
+- JSON status file for monitoring (`polling_status.json`)
+- Graceful SIGTERM/SIGINT shutdown
+- Configurable polling intervals (default 30 minutes)
+- Maximum tasks per run to prevent overload
+- Demo mode for testing (`--poll-demo`)
+
+---
+
 ## 📁 Repository Structure
 
 ```
