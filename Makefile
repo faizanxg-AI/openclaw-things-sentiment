@@ -1,4 +1,4 @@
-.PHONY: help verify demo validate ui test clean docker-build docker-run docker-stop docker-logs poll-start poll-stop poll-status healthcheck
+.PHONY: help verify verify-production demo validate ui test clean docker-build docker-run docker-stop docker-logs poll-start poll-stop poll-status healthcheck
 
 # Auto-detect virtual environment - use .venv if present, else system python3.11
 PYTHON := python3.11
@@ -12,6 +12,9 @@ help: ## Show this help
 
 verify: ## Run full verification sequence (demo + validate + CLI checks)
 	@bash scripts/verify_poller.sh
+
+verify-production: ## Comprehensive production deployment verification (23 checks)
+	@bash scripts/verify_production.sh
 
 demo: ## Generate demo memory file
 	@$(PYTHON) things_sentiment_poller.py --demo --demo-count 15 --use-demo
