@@ -19,6 +19,9 @@ import yaml
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from automation.rule_engine import RuleEngine
+from metrics.collector import MetricsCollector
+from metrics.server import MetricsServer
+from metrics.alerting import AlertManager
 
 # Configure logging
 logging.basicConfig(
