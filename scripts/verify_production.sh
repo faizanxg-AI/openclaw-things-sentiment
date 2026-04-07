@@ -180,6 +180,41 @@ else
     ((FAILED++))
 fi
 
+# 5c. Dashboard runtime health check
+echo ""
+echo "5c. Dashboard Runtime Health"
+DASHBOARD_TEST_PASSED=0
+if command -v python3 &> /dev/null && python3 -c "import flask" 2>/dev/null; then
+    # Start dashboard in background
+    python3 dashboard/app.py > /tmp/dashboard_test.log 2>&1 &
+    DASH_PID=$!
+    echo $DASH_PID > /tmp/dashboard.pid
+
+    # Wait for startup
+    for i in {1..10}; do
+        if curl -s -f http://localhost:8000/health > /dev/null 2>&1; then
+            DASHBOARD_TEST_PASSED=1
+            break
+        fi
+        sleep 0.5
+    done
+
+    # Shutdown
+    kill $DASH_PID 2>/dev/null || true
+    rm -f /tmp/dashboard.pid
+
+    if [ $DASHBOARD_TEST_PASSED -eq 1 ]; then
+        check_pass "Dashboard starts and responds on port 8000"
+        ((PASSED++))
+    else
+        check_warn "Dashboard did not respond on port 8000 (check logs: /tmp/dashboard_test.log)"
+        ((WARNINGS++))
+    fi
+else
+    check_warn "Flask not installed, skipping dashboard runtime test"
+    ((WARNINGS++))
+fi
+
 # 6. Check CI/CD
 echo ""
 echo "6. CI/CD Pipeline"
