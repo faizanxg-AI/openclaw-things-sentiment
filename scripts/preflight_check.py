@@ -148,7 +148,7 @@ class Checker:
             except json.JSONDecodeError as e:
                 self.fail("memory.json is corrupted", str(e), "Run validator: python3 comprehensive_validator.py")
         else:
-            self.warn("memory.json not found", "Will be created on first run", "Generate demo: make demo")
+            self.warn("memory.json not found", "Will be created on first run. Generate demo: make demo")
 
     def check_permissions(self):
         """Check file permissions for writing."""
