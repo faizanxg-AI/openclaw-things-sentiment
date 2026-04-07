@@ -181,7 +181,8 @@ class Checker:
             else:
                 self.warn("Docker not accessible", result.stderr.strip())
         except FileNotFoundError:
-            self.warn("Docker not installed", "Optional for container deployment", "Install Docker Desktop or docker.io")
+            self.warn("Docker not installed", "Optional for container deployment")
+            self.info("To install: Docker Desktop (macOS/Windows) or docker.io (Linux)")
 
     def check_systemd(self):
         """Check systemd availability (optional)."""
@@ -206,7 +207,8 @@ class Checker:
         if os.getenv("OPENCLAW_SESSION_KEY"):
             self.pass_check("OPENCLAW_SESSION_KEY set")
         else:
-            self.warn("OPENCLAW_SESSION_KEY not set", "Required for live polling", "Export: export OPENCLAW_SESSION_KEY=<your-key>")
+            self.warn("OPENCLAW_SESSION_KEY not set", "Required for live polling")
+            self.info("Export: export OPENCLAW_SESSION_KEY=<your-key>")
 
     def run_all(self):
         """Run all checks."""
