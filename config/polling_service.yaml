@@ -13,7 +13,7 @@ polling:
 
   # Use demo mode (synthetic tasks) instead of real Things CLI
   # Set to false for production use with actual Things 3 database
-  use_demo: false
+  use_demo: true
 
   # Memory file path (where sentiment entries are stored)
   memory_file: "memory.json"

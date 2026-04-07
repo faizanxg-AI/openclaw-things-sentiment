@@ -39,6 +39,7 @@ class PollingService:
         self.config = self.load_config()
         self.running = False
         self.rule_engine = RuleEngine()
+        self.metrics_server = None  # Optional metrics server
 
         # Setup signal handlers for graceful shutdown
         signal.signal(signal.SIGINT, self.handle_signal)
@@ -173,7 +174,7 @@ class PollingService:
             import subprocess
             result = subprocess.run(
                 ["openclaw", "agent", "--session-id", session_key, "--message", summary, "--json"],
-                capture_output=True, text=True, timeout=10
+                capture_output=True, text=True, timeout=30
             )
             if result.returncode == 0:
                 logger.info(f"Sent OpenClaw summary: {summary}")
@@ -198,7 +199,7 @@ class PollingService:
                 import subprocess
                 result = subprocess.run(
                     ["openclaw", "agent", "--session-id", session_key, "--message", message, "--json"],
-                    capture_output=True, text=True, timeout=10
+                    capture_output=True, text=True, timeout=30
                 )
                 if result.returncode != 0:
                     raise Exception(f"OpenClaw error: {result.stderr}")

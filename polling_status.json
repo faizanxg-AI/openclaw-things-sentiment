@@ -1,0 +1,9 @@
+{
+  "timestamp": "2026-04-07T15:29:24+00:00",
+  "total_tasks": 25,
+  "latest_sentiment": "very_positive",
+  "latest_title": "(Untitled task)",
+  "last_poll": "2026-04-07T15:29:00.389090+00:00",
+  "service": "things-sentiment-poller",
+  "version": "1.0.0"
+}
