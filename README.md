@@ -48,6 +48,18 @@ bash quickstart.sh
 
 It will check for macOS/Linux, Docker, Python 3.11, and OpenClaw CLI, then recommend the best deployment method (native UI, Docker container, or headless Python). Optionally auto-execute setup.
 
+### Pre-flight Validation
+
+Before deploying, run the pre-flight check to catch configuration issues:
+
+```bash
+make preflight
+# or
+python3 scripts/preflight_check.py
+```
+
+This validates: Python 3.11, virtual environment, dependencies, OpenClaw CLI, configuration files, memory file, file permissions, Docker, systemd, and environment variables. All checks must pass for reliable operation.
+
 ---
 
 ## Architecture Highlights
@@ -60,12 +72,14 @@ It will check for macOS/Linux, Docker, Python 3.11, and OpenClaw CLI, then recom
 ## Common Commands
 
 ```bash
-make verify      # Full verification (demo + validate + CLI checks)
-make demo        # Generate demo memory file with 15 entries
-make validate    # Run validator on memory.json
-make ui          # Launch menu bar app (macOS)
+make verify        # Full verification (demo + validate + CLI checks)
+make demo          # Generate demo memory file with 15 entries
+make validate      # Run validator on memory.json
+make ui            # Launch menu bar app (macOS)
+make preflight     # Run pre-flight validation (dependencies, config, permissions)
+make healthcheck   # Check polling service health (returns 0 if healthy)
 make send-test SESSION_ID=<id>  # Send test message via OpenClaw
-make docker-run  # Containerized verification (CI/isolated)
+make docker-run    # Containerized verification (CI/isolated)
 ```
 
 ## Project Structure
@@ -84,6 +98,7 @@ make docker-run  # Containerized verification (CI/isolated)
 ├── scripts/
 │   ├── start_polling.sh         # Production launcher with venv detection
 │   ├── healthcheck.py           # Health check script (returns 0 if service healthy)
+│   ├── preflight_check.py       # Pre-flight validation (dependencies, config, permissions)
 │   ├── verify_poller.sh         # Automated verification pipeline
 │   └── send_test_message.sh     # Test messaging
 ├── deploy/

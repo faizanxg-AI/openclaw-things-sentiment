@@ -38,9 +38,7 @@ def filter_week_entries(entries, week_start=None):
 
 def generate_report(entries, week_start):
     if not entries:
-        return "# Weekly Sentiment Report
-
-No data available for the selected period."
+        return "# Weekly Sentiment Report\n\nNo data available for the selected period."
     
     total = len(entries)
     
