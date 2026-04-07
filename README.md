@@ -74,17 +74,29 @@ make docker-run  # Containerized verification (CI/isolated)
 .
 ├── things_sentiment_poller.py   # Main poller with demo mode
 ├── comprehensive_validator.py   # Schema + emotion validator
+├── polling_service.py           # Live daemon with scheduling & automation
 ├── rumps_app/                   # macOS UI
 │   └── main.py
+├── automation/
+│   └── rule_engine.py           # Rule-based OpenClaw automation
+├── config/
+│   ├── automation_rules.yaml    # Notification rules
+│   └── polling_service.yaml     # Poller daemon config
 ├── scripts/
 │   ├── verify_poller.sh         # Automated verification pipeline
-│   └── send_test_message.sh     # Test message sender
-├── .github/workflows/verify.yml # CI pipeline
+│   ├── send_test_message.sh     # Test message sender
+│   └── start_polling.sh         # Polling service launcher
+├── .github/workflows/
+│   ├── verify.yml               # CI test pipeline
+│   └── docker-build.yml         # Docker multi-arch builds
 ├── Makefile                     # Task automation
 ├── Dockerfile                   # Container verification
+├── docker-compose.yml           # Container orchestration
+├── .dockerignore                # Docker build exclusions
 ├── COMMUNICATION.md             # Architecture deep-dive
 ├── QUICKSTART.md                # End-user guide
-└── README.md                    # This file
+├── DEPLOYMENT_STATUS.md         # Deployment checklist
+└── FINAL_SUMMARY.md             # Project recap
 ```
 
 ## Compatibility
@@ -107,6 +119,54 @@ make demo  # Summary will be sent to the configured session
 ```
 
 This enables the poller to notify an agent (e.g., Clawdiya) whenever new sentiment data is available without manual intervention.
+
+## Live Polling Service & Automation
+
+For production operation, run the polling service as a daemon that continuously checks for completed tasks and triggers OpenClaw notifications based on sentiment rules.
+
+### Quick Start
+
+1. **Configure automation rules** (optional): Edit `config/automation_rules.yaml`
+2. **Set environment variable**: `export OPENCLAW_SESSION_KEY=<your-session-key>`
+3. **Start the service**: `make poll-start`
+
+```bash
+# Start polling (runs in foreground)
+make poll-start
+
+# Or run once for testing
+make poll-start ARGS="--once"
+
+# Check status file
+make poll-status
+
+# Stop the service
+make poll-stop
+```
+
+**Configuration:** See `config/polling_service.yaml` to adjust:
+- Poll interval (default 30 minutes)
+- Demo mode (use synthetic tasks for testing)
+- OpenClaw summary template
+- Automation rule processing
+
+### OpenClaw Automation Rules
+
+Define rule-based notifications in `config/automation_rules.yaml`:
+
+```yaml
+rules:
+  - name: "High Frustration Alert"
+    emotion: "frustration"
+    min_intensity: 0.8
+    message_template: "Task completed with high frustration: {title}"
+    session_target: "main"
+    enabled: true
+```
+
+Rules trigger when sentiment entries match emotion, category, and intensity thresholds. Cooldowns prevent spam.
+
+---
 
 ## Docker Deployment (Recommended for Linux/CI)
 

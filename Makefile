@@ -1,4 +1,4 @@
-.PHONY: help verify demo validate ui test clean docker-build docker-run docker-stop docker-logs
+.PHONY: help verify demo validate ui test clean docker-build docker-run docker-stop docker-logs poll-start poll-stop poll-status
 
 # Auto-detect virtual environment - use .venv if present, else system python3.11
 PYTHON := python3.11
@@ -53,3 +53,14 @@ docker-prune: ## Clean Docker resources (images, containers, volumes)
 quickstart: ## Smart environment detection and guided setup
 	@echo "Running quick start wizard..."
 	bash quickstart.sh
+
+poll-start: ## Start the live polling service (requires OPENCLAW_SESSION_KEY)
+	@echo "Starting polling service..."
+	@bash scripts/start_polling.sh
+
+poll-stop: ## Stop the polling service (sends SIGTERM)
+	@echo "Stopping polling service..."
+	@if [ -f polling_service.pid ]; then kill $$(cat polling_service.pid) 2>/dev/null && rm -f polling_service.pid; echo "Stopped"; else echo "No PID file found"; fi
+
+poll-status: ## Show polling service status
+	@if [ -f polling_status.json ]; then cat polling_status.json | python3 -m json.tool; else echo "No status file found"; fi

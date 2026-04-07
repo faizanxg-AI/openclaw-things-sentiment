@@ -1,0 +1,44 @@
+# OpenClaw Sentiment Automation Rules
+# Configure when to send messages to OpenClaw agents based on task sentiment
+
+rules:
+  # Example: Send a message when a high-frustration task is completed
+  - name: "High Frustration Alert"
+    emotion: "frustration"
+    min_intensity: 0.8
+    message_template: "Task completed with high frustration: {title}"
+    session_target: "main"  # or specific session ID
+    enabled: true
+
+  # Example: Celebrate joyful completions
+  - name: "Joy Celebration"
+    emotion: "joy"
+    min_intensity: 0.7
+    message_template: "🎉 Nice work! Completed: {title}"
+    session_target: "main"
+    enabled: true
+
+  # Example: Notify when overdue tasks are done (relief)
+  - name: "Overdue Relief"
+    category: "Overdue"
+    emotion: "relief"
+    min_intensity: 0.7
+    message_template: "Phew! Overdue task finally done: {title}"
+    session_target: "main"
+    enabled: true
+
+  # Example: Motivation boost for long-delayed tasks
+  - name: "Long Task Victory"
+    category: "Long-delayed"
+    emotion: "motivation"
+    min_intensity: 0.75
+    message_template: "🏆 Persistence pays off! Completed: {title}"
+    session_target: "main"
+    enabled: true
+
+# Global settings
+settings:
+  enabled: true
+  dry_run: false  # Set true to log without actually sending
+  cooldown_minutes: 5  # Minimum time between similar messages
+  max_messages_per_run: 10

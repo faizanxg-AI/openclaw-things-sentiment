@@ -1,0 +1,59 @@
+# Polling Service Configuration
+# Controls how the live poller runs and interacts with OpenClaw
+
+polling:
+  # How often to check for completed tasks (minutes)
+  interval_minutes: 30
+
+  # Delay before first poll after service start (seconds)
+  startup_delay_seconds: 10
+
+  # Maximum number of tasks to fetch per poll (prevents overload)
+  max_tasks_per_run: 50
+
+  # Use demo mode (synthetic tasks) instead of real Things CLI
+  # Set to false for production use with actual Things 3 database
+  use_demo: false
+
+  # Memory file path (where sentiment entries are stored)
+  memory_file: "memory.json"
+
+openclaw:
+  # Enable OpenClaw integration
+  enabled: true
+
+  # Environment variable name containing the session key
+  session_key_env: "OPENCLAW_SESSION_KEY"
+
+  # Template for periodic summary messages
+  # Available placeholders: {total}, {latest_title}, {latest_sentiment}
+  summary_template: "Things sentiment update: {total} tasks processed. Latest: {latest_title} ({latest_sentiment})"
+
+  # Send summary every N polls (0 = every poll)
+  summary_every_n_polls: 1
+
+automation:
+  # Enable rule-based automation
+  enabled: true
+
+  # Path to automation rules configuration
+  config_path: "config/automation_rules.yaml"
+
+  # Process entries from last N hours for automation triggers
+  # (prevents re-triggering old entries)
+  recent_hours: 24
+
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Health check settings
+health:
+  # Write PID file for process management
+  pid_file: "polling_service.pid"
+
+  # Create a simple health status file
+  status_file: "polling_status.json"
+
+  # How often to update health status (seconds)
+  status_interval_seconds: 60
