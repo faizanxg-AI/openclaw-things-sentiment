@@ -49,3 +49,7 @@ docker-logs: ## View container logs
 
 docker-prune: ## Clean Docker resources (images, containers, volumes)
 	docker system prune -af --volumes
+
+quickstart: ## Smart environment detection and guided setup
+	@echo "Running quick start wizard..."
+	bash quickstart.sh

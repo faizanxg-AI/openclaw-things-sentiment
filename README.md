@@ -36,6 +36,20 @@ make ui
 
 See [QUICKSTART.md](QUICKSTART.md) for detailed setup, troubleshooting, and platform-specific notes.
 
+## Quick Start (Smart Script)
+
+For guided setup, run the smart quick-start script that auto-detects your environment:
+
+```bash
+make quickstart
+# or
+bash quickstart.sh
+```
+
+It will check for macOS/Linux, Docker, Python 3.11, and OpenClaw CLI, then recommend the best deployment method (native UI, Docker container, or headless Python). Optionally auto-execute setup.
+
+---
+
 ## Architecture Highlights
 
 - **Two-Layer Design**: Poller runs independently; OpenClaw communication via direct CLI (MCP bypass due to `structuredContent` parsing limitations)
