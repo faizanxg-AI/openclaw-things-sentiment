@@ -160,6 +160,26 @@ else
     ((FAILED++))
 fi
 
+
+# 5b. Check dashboard
+echo ""
+echo "5b. Web Dashboard"
+if [ -f "dashboard/app.py" ] && [ -f "dashboard/templates/index.html" ]; then
+    check_pass "Dashboard files exist"
+    ((PASSED++))
+else
+    check_fail "Dashboard files missing"
+    ((FAILED++))
+fi
+
+if grep -q "^dashboard:" Makefile; then
+    check_pass "dashboard Make target defined"
+    ((PASSED++))
+else
+    check_fail "dashboard Make target missing"
+    ((FAILED++))
+fi
+
 # 6. Check CI/CD
 echo ""
 echo "6. CI/CD Pipeline"
