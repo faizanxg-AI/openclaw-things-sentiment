@@ -492,7 +492,7 @@ def run_poller(args):
                 summary = f"Things sentiment update: {total} total entries. No entries yet."
             result = subprocess.run(
                 ["openclaw", "agent", "--session-id", session_key, "--message", summary, "--json"],
-                capture_output=True, text=True, timeout=10
+                capture_output=True, text=True, timeout=30
             )
             if result.returncode != 0:
                 print(f"OpenClaw send failed: {result.stderr}")
