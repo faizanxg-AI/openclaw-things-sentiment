@@ -257,6 +257,11 @@ class PollingService:
                     break
                 time.sleep(1)
 
+        # Cleanup metrics server
+        if self.metrics_server and self.metrics_server.is_running():
+            self.metrics_server.stop()
+            logger.info("Metrics server stopped")
+
         logger.info("Polling service stopped gracefully")
 
 def main():
